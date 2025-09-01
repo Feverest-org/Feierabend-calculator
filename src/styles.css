@@ -79,13 +79,15 @@
 
 /* Balance Section */
 .balance-section {
-    margin-top: var(--space-6);
+    margin-top: var(--space-8); /* Increased margin to separate from main result */
+    padding-top: var(--space-6); /* Added padding for visual separation */
+    border-top: 1px solid var(--border-color); /* Added divider line for clearer separation */
 }
 
 .balance-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--space-4);
+    gap: var(--space-6); /* Increased spacing between balance items */
 }
 
 .result-grid {
@@ -406,10 +408,19 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: var(--space-4);
+    padding: var(--space-5); /* Increased internal padding */
     background: var(--surface-color);
     border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color); /* Added border for better separation */
+    box-shadow: var(--shadow-md); /* Enhanced shadow for more depth */
+    margin-bottom: var(--space-2); /* Small margin at bottom for better spacing */
+    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Smooth transition for hover effect */
+}
+
+/* Subtle hover effect for better interactivity */
+.result-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .balance-item {
@@ -642,12 +653,25 @@ body {
 /* Appearance Controls */
 .appearance-controls {
     margin-top: var(--space-4);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    justify-content: space-between;
 }
 
-.theme-control {
+.theme-control, .language-control {
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
+    min-width: 200px;
+}
+
+.theme-control {
+    flex: 3; /* Thema-Slider bekommt mehr Platz */
+}
+
+.language-control {
+    flex: 2; /* Sprach-Slider bekommt weniger Platz */
 }
 
 .control-label {
@@ -655,6 +679,211 @@ body {
     font-weight: 600;
     color: var(--text-color);
     margin-bottom: var(--space-2);
+}
+
+/* Modern Segmented Controls */
+.segmented-control {
+    display: flex;
+    width: 100%;
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-4);
+}
+
+.segment-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    padding: var(--space-3) var(--space-2);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    overflow: hidden;
+}
+
+.segment-btn:not(:last-child) {
+    border-right: 1px solid var(--border-color);
+}
+
+.segment-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.segment-btn:hover:not(.active) {
+    background-color: var(--hover-bg);
+}
+
+.segment-btn:active {
+    transform: scale(0.98);
+}
+
+.segment-icon {
+    font-size: 1.2rem;
+    margin-bottom: var(--space-1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.segment-text {
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Specific styling for theme segmented control */
+.theme-segmented {
+    min-height: 80px;
+}
+
+/* Specific styling for language segmented control */
+.language-segmented {
+    min-height: 80px;
+    width: 80%;  /* Make language control slightly smaller */
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+    .segmented-control {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .segment-btn {
+        padding: var(--space-3);
+        flex-direction: row;
+        justify-content: center;
+        gap: var(--space-3);
+    }
+    
+    .segment-btn:not(:last-child) {
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .segment-icon {
+        margin-bottom: 0;
+    }
+}
+
+/* Dark theme specific adjustments */
+[data-theme="dark"] .segment-btn.active {
+    background-color: var(--primary-color);
+    color: var(--text-on-primary);
+}
+
+/* Custom hover background color */
+:root {
+    --hover-bg: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] {
+    --hover-bg: rgba(255, 255, 255, 0.08);
+}
+
+/* Language slider styling - follow the same design as theme slider but shorter */
+.language-slider-container {
+    position: relative;
+    width: 60%; /* Noch kleinere Breite für den Sprachslider (ca. 1/3 weniger als Theme-Slider) */
+    max-width: 200px; /* Kleinere maximale Breite */
+    padding: var(--space-2) 0; /* Weniger Padding */
+    margin: 0 auto; /* Zentrieren des Sliders */
+    margin-bottom: var(--space-6); /* Mehr Platz nach unten für die Texte */
+}
+
+.language-slider {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 2px;
+    background: transparent;
+    outline: none;
+    opacity: 0;
+    z-index: 3;
+    position: relative;
+    margin: var(--space-4) 0; /* Größerer Abstand für die Icons */
+}
+
+.language-slider-track {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 4px; /* Etwas dicker für bessere Sichtbarkeit */
+    background: var(--border-color);
+    transform: translateY(-50%);
+    border-radius: 3px;
+    margin-top: 10px; /* Verschiebt den Track etwas nach unten für Icons darüber */
+}
+
+.language-slider-thumb {
+    position: absolute;
+    top: 50%;
+    width: 16px; /* Etwas größerer Thumb für bessere Sichtbarkeit */
+    height: 16px; /* Etwas größerer Thumb für bessere Sichtbarkeit */
+    background: var(--primary-color);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: left 0.3s ease;
+    z-index: 2;
+    margin-top: 10px; /* Synchronisiert mit dem Track */
+}
+
+.language-labels {
+    display: flex;
+    justify-content: space-between;
+    position: relative; /* Für die genaue Positionierung der Icons */
+    width: 100%;
+    height: 0; /* Kein zusätzlicher Platz */
+}
+
+.language-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    position: absolute; /* Absolute Positionierung für genaue Platzierung */
+    transform: translateX(-50%); /* Zentriert das Label an seiner Position */
+    text-align: center;
+    width: auto;
+    top: -20px; /* Positioniert die Icons direkt auf dem Slider */
+}
+
+/* Genaue Positionierung der Labels auf den Stoppunkten */
+.language-label[data-lang="de"] {
+    left: 0%;
+}
+
+.language-label[data-lang="en"] {
+    left: 100%;
+}
+
+.language-flag {
+    font-size: 1.1rem; /* Etwas größeres Icon für bessere Sichtbarkeit */
+    margin-bottom: var(--space-1);
+    background-color: var(--surface-color); /* Hintergrund hinzufügen */
+    border-radius: 50%;
+    padding: 0.2rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.language-text {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    position: relative;
+    top: 25px; /* Text unter den Slider verschieben */
 }
 
 .config-radio {

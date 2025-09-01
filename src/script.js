@@ -7,7 +7,8 @@ class ConfigManager {
         this.defaultConfig = {
             targetHours: 8,
             breakDuration: 30,
-            theme: 'system'
+            theme: 'system',
+            language: 'de'
         };
         this.config = { ...this.defaultConfig };
         this.loadConfig();
@@ -117,12 +118,31 @@ class ThemeManager {
     applyTheme() {
         const root = document.documentElement;
         
+        // Remove all theme classes first
+        root.classList.remove('theme-light', 'theme-dark', 'theme-system');
+        
         if (this.currentTheme === 'system') {
-            // Remove explicit theme, let CSS handle system preference
+            // For system theme, check OS preference
             root.removeAttribute('data-theme');
+            root.classList.add('theme-system');
+            
+            // Check system preference
+            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDarkScheme) {
+                root.setAttribute('data-theme', 'dark');
+            } else {
+                root.setAttribute('data-theme', 'light');
+            }
         } else {
+            // For explicit theme choice
             root.setAttribute('data-theme', this.currentTheme);
+            root.classList.add(`theme-${this.currentTheme}`);
         }
+        
+        // Update localStorage
+        localStorage.setItem('theme', this.currentTheme);
+        
+        console.log(`Theme applied: ${this.currentTheme}`);
     }
 
     /**
@@ -155,11 +175,11 @@ class FlexibleTimeCalculator {
         this.configManager = new ConfigManager();
         this.themeManager = new ThemeManager();
         
-        // Initialize timer for current balance updates
-        this.updateTimer = null;
-        
         // Get DOM elements
         this.initializeElements();
+        
+        // Fill end time with current time
+        this.setCurrentTimeAsEndTime();
         
         // Bind events
         this.bindEvents();
@@ -170,8 +190,8 @@ class FlexibleTimeCalculator {
         // Perform initial calculation
         this.calculateTime();
         
-        // Start update timer for current balance
-        this.startUpdateTimer();
+        // Set up auto-update for current time in end time field
+        this.setupEndTimeUpdater();
     }
 
     /**
@@ -187,7 +207,6 @@ class FlexibleTimeCalculator {
         this.workingHoursDisplay = document.getElementById('working-hours');
         this.targetDisplay = document.getElementById('target-display');
         this.timeBalanceDisplay = document.getElementById('time-balance');
-        this.currentBalanceDisplay = document.getElementById('current-balance');
         this.totalOvertimeDisplay = document.getElementById('total-overtime');
         this.suggestedEndTimeDisplay = document.getElementById('suggested-end-time');
         
@@ -206,7 +225,12 @@ class FlexibleTimeCalculator {
         this.customBreakInput = document.getElementById('config-custom-break');
         
         // Theme inputs
-        this.themeInputs = document.querySelectorAll('input[name="theme"]');
+        this.themeHiddenInput = document.getElementById('theme-hidden');
+        this.themeSegmentBtns = document.querySelectorAll('.theme-segmented .segment-btn');
+        
+        // Language inputs
+        this.languageHiddenInput = document.getElementById('language-hidden');
+        this.languageSegmentBtns = document.querySelectorAll('.language-segmented .segment-btn');
     }
 
     /**
@@ -215,7 +239,11 @@ class FlexibleTimeCalculator {
     bindEvents() {
         // Real-time calculation when inputs change
         this.startTimeInput.addEventListener('input', () => this.handleInputChange());
-        this.endTimeInput.addEventListener('input', () => this.handleInputChange());
+        this.endTimeInput.addEventListener('input', () => {
+            // Mark end time as manually edited
+            this.endTimeInput.setAttribute('data-manual-input', 'true');
+            this.handleInputChange();
+        });
         this.overtimeBalanceInput.addEventListener('input', () => this.handleInputChange());
         
         // Configuration modal events
@@ -236,11 +264,26 @@ class FlexibleTimeCalculator {
         this.customHoursInput.addEventListener('input', () => this.handleCustomHoursInput());
         this.customBreakInput.addEventListener('input', () => this.handleCustomBreakInput());
         
-        // Theme handling
-        this.themeInputs.forEach(input => {
-            input.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    this.themeManager.setTheme(e.target.value);
+        // Theme handling - segmented control
+        this.themeSegmentBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const themeValue = btn.getAttribute('data-theme');
+                if (themeValue) {
+                    this.themeHiddenInput.value = themeValue;
+                    this.themeManager.setTheme(themeValue);
+                    this.updateActiveThemeButton(themeValue);
+                }
+            });
+        });
+        
+        // Language handling - segmented control
+        this.languageSegmentBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const langValue = btn.getAttribute('data-lang');
+                if (langValue) {
+                    this.languageHiddenInput.value = langValue;
+                    this.updateLanguage(langValue);
+                    this.updateActiveLanguageButton(langValue);
                 }
             });
         });
@@ -344,10 +387,13 @@ class FlexibleTimeCalculator {
         
         // Load theme
         const theme = this.themeManager.getTheme();
-        const themeInput = document.querySelector(`input[name="theme"][value="${theme}"]`);
-        if (themeInput) {
-            themeInput.checked = true;
-        }
+        this.themeHiddenInput.value = theme;
+        this.updateActiveThemeButton(theme);
+        
+        // Load language
+        const language = config.language || 'de';
+        this.languageHiddenInput.value = language;
+        this.updateActiveLanguageButton(language);
         
         // Update custom inputs state
         this.updateCustomInputsState();
@@ -413,8 +459,53 @@ class FlexibleTimeCalculator {
     resetConfiguration() {
         this.configManager.resetConfig();
         this.themeManager.setTheme('system');
+        
+        // Reset language to default (German)
+        this.languageHiddenInput.value = 'de';
+        
+        // Update UI
+        this.updateActiveThemeButton('system');
+        this.updateActiveLanguageButton('de');
+        
         this.loadConfiguration();
         this.calculateTime();
+    }
+    
+    /**
+     * Update active theme button
+     */
+    updateActiveThemeButton(theme) {
+        this.themeSegmentBtns.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-theme') === theme) {
+                btn.classList.add('active');
+            }
+        });
+    }
+    
+    /**
+     * Update active language button
+     */
+    updateActiveLanguageButton(language) {
+        this.languageSegmentBtns.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-lang') === language) {
+                btn.classList.add('active');
+            }
+        });
+    }
+    
+    /**
+     * Update language
+     */
+    updateLanguage(language) {
+        // Aktualisieren und speichern Sie die Spracheinstellung
+        const config = this.configManager.getConfig();
+        config.language = language;
+        this.configManager.updateConfig(config);
+        
+        // Hier könnte in Zukunft die Übersetzungslogik implementiert werden
+        console.log(`Language changed to: ${language}`);
     }
 
     /**
@@ -431,39 +522,18 @@ class FlexibleTimeCalculator {
         // Always show target hours from configuration
         this.targetDisplay.textContent = this.formatHours(config.targetHours);
         
-        // Calculate suggested end time and current balance if start time is provided
+        // Calculate suggested end time if start time is provided
         if (startTime) {
             const start = this.parseTime(startTime);
             if (start) {
                 const targetMinutes = config.targetHours * 60;
                 const suggestedEndTime = new Date(start.getTime() + (targetMinutes + config.breakDuration) * 60 * 1000);
                 this.suggestedEndTimeDisplay.textContent = this.formatTime(suggestedEndTime);
-                
-                // Calculate current balance (if leaving now)
-                const now = new Date();
-                const currentMinutes = (now - start) / (1000 * 60);
-                const currentWorkingMinutes = Math.max(0, currentMinutes - config.breakDuration);
-                const currentWorkingHours = currentWorkingMinutes / 60;
-                const currentBalance = currentWorkingHours - config.targetHours;
-                const currentTotalBalance = currentOvertimeBalance + currentBalance;
-                
-                // Update current balance display
-                this.currentBalanceDisplay.textContent = this.formatHours(currentTotalBalance);
-                this.currentBalanceDisplay.className = 'result-value current-balance-value';
-                const currentBalanceItem = this.currentBalanceDisplay.closest('.current-balance-item');
-                currentBalanceItem.classList.remove('positive', 'negative');
-                if (currentTotalBalance > 0) {
-                    currentBalanceItem.classList.add('positive');
-                } else if (currentTotalBalance < 0) {
-                    currentBalanceItem.classList.add('negative');
-                }
             } else {
                 this.suggestedEndTimeDisplay.textContent = '--:--';
-                this.currentBalanceDisplay.textContent = '--:--';
             }
         } else {
             this.suggestedEndTimeDisplay.textContent = '--:--';
-            this.currentBalanceDisplay.textContent = '--:--';
         }
         
         // If both start and end time are provided, calculate everything
@@ -545,6 +615,30 @@ class FlexibleTimeCalculator {
         const minutes = date.getMinutes().toString().padStart(2, '0');
         return `${hours}:${minutes}`;
     }
+    
+    /**
+     * Set current time as end time
+     */
+    setCurrentTimeAsEndTime() {
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        this.endTimeInput.value = `${hours}:${minutes}`;
+    }
+    
+    /**
+     * Setup automatic end time updater
+     */
+    setupEndTimeUpdater() {
+        // Update end time every minute if the user hasn't manually changed it
+        setInterval(() => {
+            // Only update if no manual input was done (tracked by data attribute)
+            if (this.endTimeInput.getAttribute('data-manual-input') !== 'true') {
+                this.setCurrentTimeAsEndTime();
+                this.calculateTime();
+            }
+        }, 60000); // Update every minute
+    }
 
     /**
      * Update results display
@@ -595,13 +689,11 @@ class FlexibleTimeCalculator {
         this.workingHoursDisplay.textContent = '--:--';
         this.targetDisplay.textContent = '--:--';
         this.timeBalanceDisplay.textContent = '--:--';
-        this.currentBalanceDisplay.textContent = '--:--';
         this.totalOvertimeDisplay.textContent = '--:--';
         this.suggestedEndTimeDisplay.textContent = '--:--';
         
         // Reset classes
         this.timeBalanceDisplay.className = 'result-value balance-value';
-        this.currentBalanceDisplay.className = 'result-value current-balance-value';
         this.totalOvertimeDisplay.className = 'result-value overtime-value';
     }
 
@@ -611,19 +703,17 @@ class FlexibleTimeCalculator {
     clearWorkingResults() {
         this.workingHoursDisplay.textContent = '--:--';
         this.timeBalanceDisplay.textContent = '--:--';
-        this.currentBalanceDisplay.textContent = '--:--';
         this.totalOvertimeDisplay.textContent = '--:--';
         this.suggestedEndTimeDisplay.textContent = '--:--';
         
         // Reset classes
         this.timeBalanceDisplay.className = 'result-value balance-value';
-        this.currentBalanceDisplay.className = 'result-value current-balance-value';
         this.totalOvertimeDisplay.className = 'result-value overtime-value';
     }
 
     /**
      * Clear only results that require both start and end time
-     * (keep target hours, suggested end time, and current balance visible)
+     * (keep target hours and suggested end time visible)
      */
     clearPartialResults() {
         this.workingHoursDisplay.textContent = '--:--';
@@ -635,58 +725,7 @@ class FlexibleTimeCalculator {
         this.totalOvertimeDisplay.className = 'result-value overtime-value';
     }
 
-    /**
-     * Start timer for updating current balance
-     */
-    startUpdateTimer() {
-        // Update every 30 seconds
-        this.updateTimer = setInterval(() => {
-            this.updateCurrentBalance();
-        }, 30000);
-    }
-
-    /**
-     * Stop the update timer
-     */
-    stopUpdateTimer() {
-        if (this.updateTimer) {
-            clearInterval(this.updateTimer);
-            this.updateTimer = null;
-        }
-    }
-
-    /**
-     * Update only the current balance (called by timer)
-     */
-    updateCurrentBalance() {
-        const startTime = this.startTimeInput.value;
-        const currentOvertimeBalance = parseFloat(this.overtimeBalanceInput.value) || 0;
-        const config = this.configManager.getConfig();
-
-        if (startTime) {
-            const start = this.parseTime(startTime);
-            if (start) {
-                // Calculate current balance (if leaving now)
-                const now = new Date();
-                const currentMinutes = (now - start) / (1000 * 60);
-                const currentWorkingMinutes = Math.max(0, currentMinutes - config.breakDuration);
-                const currentWorkingHours = currentWorkingMinutes / 60;
-                const currentBalance = currentWorkingHours - config.targetHours;
-                const currentTotalBalance = currentOvertimeBalance + currentBalance;
-                
-                // Update current balance display
-                this.currentBalanceDisplay.textContent = this.formatHours(currentTotalBalance);
-                this.currentBalanceDisplay.className = 'result-value current-balance-value';
-                const currentBalanceItem = this.currentBalanceDisplay.closest('.current-balance-item');
-                currentBalanceItem.classList.remove('positive', 'negative');
-                if (currentTotalBalance > 0) {
-                    currentBalanceItem.classList.add('positive');
-                } else if (currentTotalBalance < 0) {
-                    currentBalanceItem.classList.add('negative');
-                }
-            }
-        }
-    }
+    // Methods for updating current balance have been removed as we now use auto-filled end time instead
 }
 
 // Initialize the application when DOM is loaded

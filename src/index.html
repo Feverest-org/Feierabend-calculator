@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flexible Time Calculator</title>
+    <title>Feierabend Calculator</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,8 +13,8 @@
     <div class="container">
         <header class="header">
             <h1 class="title">
-                <span class="icon">⏰</span>
-                Flexible Time Calculator
+                <span class="icon">🌅</span>
+                Feierabend Calculator
             </h1>
             <button id="config-btn" class="config-btn" title="Settings">
                 <span class="config-icon">⚙️</span>
@@ -70,10 +70,6 @@
                     <!-- Balance section -->
                     <div class="balance-section">
                         <div class="balance-grid">
-                            <div class="result-item current-balance-item">
-                                <span class="result-label">Current Balance <small>(if leaving now)</small></span>
-                                <span id="current-balance" class="result-value current-balance-value">--:--</span>
-                            </div>
                             <div class="result-item balance-item">
                                 <span class="result-label">Today´s estimated Balance</span>
                                 <span id="time-balance" class="result-value balance-value">--:--</span>
@@ -189,45 +185,33 @@
                         <div class="appearance-controls">
                             <div class="theme-control">
                                 <label class="control-label">Theme</label>
-                                <div class="theme-slider-container">
-                                    <input type="range" id="theme-slider" class="theme-slider" min="0" max="2" value="0" step="1">
-                                    <div class="theme-slider-track">
-                                        <div class="theme-slider-thumb"></div>
-                                    </div>
-                                    <div class="theme-labels">
-                                        <span class="theme-label" data-theme="system">
-                                            <span class="theme-icon">💻</span>
-                                            <span class="theme-text">System</span>
-                                        </span>
-                                        <span class="theme-label" data-theme="light">
-                                            <span class="theme-icon">☀️</span>
-                                            <span class="theme-text">Light</span>
-                                        </span>
-                                        <span class="theme-label" data-theme="dark">
-                                            <span class="theme-icon">🌙</span>
-                                            <span class="theme-text">Dark</span>
-                                        </span>
-                                    </div>
+                                <div class="segmented-control theme-segmented">
+                                    <button type="button" class="segment-btn" data-theme="system">
+                                        <span class="segment-icon">💻</span>
+                                        <span class="segment-text">System</span>
+                                    </button>
+                                    <button type="button" class="segment-btn" data-theme="light">
+                                        <span class="segment-icon">☀️</span>
+                                        <span class="segment-text">Light</span>
+                                    </button>
+                                    <button type="button" class="segment-btn" data-theme="dark">
+                                        <span class="segment-icon">🌙</span>
+                                        <span class="segment-text">Dark</span>
+                                    </button>
                                 </div>
                             </div>
                             
                             <div class="language-control">
                                 <label class="control-label">Language</label>
-                                <div class="language-slider-container">
-                                    <input type="range" id="language-slider" class="language-slider" min="0" max="1" value="0" step="1">
-                                    <div class="language-slider-track">
-                                        <div class="language-slider-thumb"></div>
-                                    </div>
-                                    <div class="language-labels">
-                                        <span class="language-label" data-lang="de">
-                                            <span class="language-flag">🇩�</span>
-                                            <span class="language-text">Deutsch</span>
-                                        </span>
-                                        <span class="language-label" data-lang="en">
-                                            <span class="language-flag">🇺🇸</span>
-                                            <span class="language-text">English</span>
-                                        </span>
-                                    </div>
+                                <div class="segmented-control language-segmented">
+                                    <button type="button" class="segment-btn" data-lang="de">
+                                        <span class="segment-icon">🇩🇪</span>
+                                        <span class="segment-text">Deutsch</span>
+                                    </button>
+                                    <button type="button" class="segment-btn" data-lang="en">
+                                        <span class="segment-icon">🇺🇸</span>
+                                        <span class="segment-text">English</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
