@@ -240,32 +240,8 @@ body {
     gap: var(--space-3);
 }
 
-/* Einheitliche Icon-Klasse für alle SVG-Icons in der App */
-.app-icon {
-    width: 24px;
-    height: 24px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.app-icon svg {
-    width: 100%;
-    height: 100%;
-    fill: currentColor;
-}
-
-/* Spezifische Anpassungen für den Header-Icon */
 .icon {
     font-size: var(--font-size-2xl);
-    display: flex;
-    align-items: center;
-}
-
-.icon .app-icon {
-    margin-right: var(--space-1);
-    width: 28px;
-    height: 28px;
 }
 
 .subtitle {
@@ -985,56 +961,26 @@ body {
 
 .footer-content {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 0 var(--space-4);
+    gap: var(--space-3);
 }
 
-.footer-links {
-    display: flex;
-    align-items: center;
-}
-
-.footer-copyright {
-    text-align: right;
-    color: var(--text-secondary);
-}
-
-/* Gemeinsame Stile für Footer-Links */
-.github-link, .author-profile {
+.github-link {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
     color: var(--text-secondary);
     text-decoration: none;
-    transition: color 0.2s ease, transform 0.2s ease;
-    padding: var(--space-1);
+    transition: color 0.2s ease;
 }
 
-/* Avatar-Stile */
-.author-avatar {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    object-fit: cover;
-}
-
-/* Hover-Effekte */
-.github-link:hover, .author-profile:hover {
+.github-link:hover {
     color: var(--primary-color);
-    transform: scale(1.05);
 }
 
-/* Responsive Icon-Größen */
-@media screen and (max-width: 480px) {
-    .app-icon {
-        width: 20px;
-        height: 20px;
-    }
+.github-link svg {
+    width: 20px;
+    height: 20px;
 }
 
 /* Animations */
@@ -1142,11 +1088,6 @@ body {
 @media (max-width: 480px) {
     .title {
         font-size: var(--font-size-xl);
-    }
-    
-    .icon svg {
-        width: 22px;
-        height: 22px;
     }
     
     .subtitle {
