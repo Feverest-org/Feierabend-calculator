@@ -9,12 +9,45 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="assets/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+    <link rel="manifest" href="assets/site.webmanifest">
+    <meta name="theme-color" content="#ff9800">
 </head>
 <body>
     <div class="container">
         <header class="header">
             <h1 class="title">
-                <span class="icon">🌅</span>
+                <span class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="30" height="30">
+                        <defs>
+                            <linearGradient id="sky-header" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#64B5F6" />
+                                <stop offset="40%" stop-color="#FFCC80" />
+                                <stop offset="70%" stop-color="#FF9800" />
+                                <stop offset="100%" stop-color="#FF5722" />
+                            </linearGradient>
+                            <linearGradient id="sun-header" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#FFD54F" />
+                                <stop offset="100%" stop-color="#FF9800" />
+                            </linearGradient>
+                            <linearGradient id="horizon-header" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#795548" />
+                                <stop offset="100%" stop-color="#3E2723" />
+                            </linearGradient>
+                        </defs>
+                        <rect width="100" height="100" rx="15" fill="url(#sky-header)" />
+                        <circle cx="50" cy="75" r="20" fill="url(#sun-header)" />
+                        <rect x="0" y="75" width="100" height="25" fill="url(#horizon-header)" />
+                        <path d="M80,45 Q85,40 90,45 Q95,50 90,55 Q85,60 80,55 Q75,50 80,45" fill="#FFFFFF" opacity="0.7" />
+                        <path d="M20,35 Q25,30 30,35 Q35,40 30,45 Q25,50 20,45 Q15,40 20,35" fill="#FFFFFF" opacity="0.7" />
+                        <rect x="35" y="30" width="30" height="15" rx="3" fill="white" opacity="0.9" />
+                        <text x="38" y="42" font-family="Arial" font-size="12" font-weight="bold" fill="#333333">17:00</text>
+                    </svg>
+                </span>
                 Feierabend Calculator
             </h1>
             <button id="config-btn" class="config-btn" title="Settings">
@@ -233,7 +266,7 @@
             <div class="footer-content">
                 <div class="footer-links">
                     <a href="https://github.com/Surice" target="_blank" rel="noopener noreferrer" class="author-profile">
-                        <img src="https://github.com/Surice.png" alt="Surice GitHub Profile" class="author-avatar">
+                        <img src="https://github.com/Surice.png?size=60" alt="Surice GitHub Profile" class="author-avatar">
                     </a>
                     <a href="https://github.com/Surice/Feierabend-calculator" target="_blank" rel="noopener noreferrer" class="github-link">
                         <i class="fab fa-github"></i>
