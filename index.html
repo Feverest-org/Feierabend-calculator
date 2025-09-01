@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flexible Time Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">
+                <span class="icon">⏰</span>
+                Flexible Time Calculator
+            </h1>
+            <button id="config-btn" class="config-btn" title="Settings">
+                <span class="config-icon">⚙️</span>
+            </button>
+        </header>
+
+        <main class="main">
+            <div class="calculator-card">
+                <form id="time-form" class="form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="start-time" class="label">Start Time</label>
+                            <input type="time" id="start-time" name="startTime" class="input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="end-time" class="label">Estimated End Time</label>
+                            <input type="time" id="end-time" name="endTime" class="input" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="overtime-balance" class="label">Current Overtime Balance (hours)</label>
+                        <input type="number" id="overtime-balance" name="overtimeBalance" class="input" 
+                               step="0.25" placeholder="0.00" value="0">
+                        <small class="input-help">Enter your current overtime balance in decimal hours (e.g., 2.5 for 2h 30min)</small>
+                    </div>
+                </form>
+            </div>
+
+            <div class="results-card">
+                <div id="results" class="results">
+                    <div class="results-header">
+                        <h3 class="result-title">Calculation Results</h3>
+                        <div class="target-info">
+                            Target: <span id="target-display" class="target-hours">--:--</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Main working hours section -->
+                    <div class="main-result">
+                        <div class="working-hours-item">
+                            <span class="result-label">Working Hours</span>
+                            <span id="working-hours" class="result-value main-value">--:--</span>
+                        </div>
+                        <div class="end-time-suggestion">
+                            <p class="suggestion-text">
+                                To reach target, leave at:
+                                <strong id="suggested-end-time" class="suggested-time">--:--</strong>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Balance section -->
+                    <div class="balance-section">
+                        <div class="balance-grid">
+                            <div class="result-item current-balance-item">
+                                <span class="result-label">Current Balance <small>(if leaving now)</small></span>
+                                <span id="current-balance" class="result-value current-balance-value">--:--</span>
+                            </div>
+                            <div class="result-item balance-item">
+                                <span class="result-label">Today´s estimated Balance</span>
+                                <span id="time-balance" class="result-value balance-value">--:--</span>
+                            </div>
+                            <div class="result-item overtime-item">
+                                <span class="result-label">New Estimated Balance</span>
+                                <span id="total-overtime" class="result-value overtime-value">--:--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>        <!-- Configuration Modal -->
+        <div id="config-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Settings</h2>
+                    <button id="modal-close" class="modal-close">&times;</button>
+                </div>
+                
+                <form id="config-form" class="modal-body">
+                    <div class="config-section">
+                        <h3 class="config-section-title">Working Hours</h3>
+                        <div class="config-grid">
+                            <div class="config-item">
+                                <label for="config-target-4" class="config-label">
+                                    <input type="radio" id="config-target-4" name="targetHours" value="4" class="config-radio">
+                                    <span class="config-option">4 hours</span>
+                                </label>
+                            </div>
+                            <div class="config-item">
+                                <label for="config-target-6" class="config-label">
+                                    <input type="radio" id="config-target-6" name="targetHours" value="6" class="config-radio">
+                                    <span class="config-option">6 hours</span>
+                                </label>
+                            </div>
+                            <div class="config-item">
+                                <label for="config-target-7" class="config-label">
+                                    <input type="radio" id="config-target-7" name="targetHours" value="7" class="config-radio">
+                                    <span class="config-option">7 hours</span>
+                                </label>
+                            </div>
+                            <div class="config-item">
+                                <label for="config-target-7-5" class="config-label">
+                                    <input type="radio" id="config-target-7-5" name="targetHours" value="7.5" class="config-radio">
+                                    <span class="config-option">7.5 hours</span>
+                                </label>
+                            </div>
+                            <div class="config-item">
+                                <label for="config-target-8" class="config-label">
+                                    <input type="radio" id="config-target-8" name="targetHours" value="8" class="config-radio">
+                                    <span class="config-option">8 hours</span>
+                                </label>
+                            </div>
+                            <div class="config-item">
+                                <label for="config-target-custom" class="config-label">
+                                    <input type="radio" id="config-target-custom" name="targetHours" value="custom" class="config-radio">
+                                    <span class="config-option">Custom</span>
+                                </label>
+                                <input type="number" id="config-custom-hours" class="config-custom-input" 
+                                       min="1" max="12" step="0.25" placeholder="Hours">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="config-section">
+                        <h3 class="config-section-title">Break Duration</h3>
+                        <div class="config-grid">
+                            <div class="config-item">
+                                <label for="config-break-0" class="config-label">
+                                    <input type="radio" id="config-break-0" name="breakDuration" value="0" class="config-radio">
+                                    <span class="config-option">No break</span>
+                                </label>
+                            </div>
+                            <div class="config-item">
+                                <label for="config-break-15" class="config-label">
+                                    <input type="radio" id="config-break-15" name="breakDuration" value="15" class="config-radio">
+                                    <span class="config-option">15 minutes</span>
+                                </label>
+                            </div>
+                            <div class="config-item">
+                                <label for="config-break-30" class="config-label">
+                                    <input type="radio" id="config-break-30" name="breakDuration" value="30" class="config-radio">
+                                    <span class="config-option">30 minutes</span>
+                                </label>
+                            </div>
+                            <div class="config-item">
+                                <label for="config-break-45" class="config-label">
+                                    <input type="radio" id="config-break-45" name="breakDuration" value="45" class="config-radio">
+                                    <span class="config-option">45 minutes</span>
+                                </label>
+                            </div>
+                            <div class="config-item">
+                                <label for="config-break-60" class="config-label">
+                                    <input type="radio" id="config-break-60" name="breakDuration" value="60" class="config-radio">
+                                    <span class="config-option">1 hour</span>
+                                </label>
+                            </div>
+                            <div class="config-item">
+                                <label for="config-break-custom" class="config-label">
+                                    <input type="radio" id="config-break-custom" name="breakDuration" value="custom" class="config-radio">
+                                    <span class="config-option">Custom</span>
+                                </label>
+                                <input type="number" id="config-custom-break" class="config-custom-input" 
+                                       min="0" max="480" placeholder="Minutes">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="config-section">
+                        <h3 class="config-section-title">Appearance</h3>
+                        <div class="appearance-controls">
+                            <div class="theme-control">
+                                <label class="control-label">Theme</label>
+                                <div class="theme-slider-container">
+                                    <input type="range" id="theme-slider" class="theme-slider" min="0" max="2" value="0" step="1">
+                                    <div class="theme-slider-track">
+                                        <div class="theme-slider-thumb"></div>
+                                    </div>
+                                    <div class="theme-labels">
+                                        <span class="theme-label" data-theme="system">
+                                            <span class="theme-icon">💻</span>
+                                            <span class="theme-text">System</span>
+                                        </span>
+                                        <span class="theme-label" data-theme="light">
+                                            <span class="theme-icon">☀️</span>
+                                            <span class="theme-text">Light</span>
+                                        </span>
+                                        <span class="theme-label" data-theme="dark">
+                                            <span class="theme-icon">🌙</span>
+                                            <span class="theme-text">Dark</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="language-control">
+                                <label class="control-label">Language</label>
+                                <div class="language-slider-container">
+                                    <input type="range" id="language-slider" class="language-slider" min="0" max="1" value="0" step="1">
+                                    <div class="language-slider-track">
+                                        <div class="language-slider-thumb"></div>
+                                    </div>
+                                    <div class="language-labels">
+                                        <span class="language-label" data-lang="de">
+                                            <span class="language-flag">🇩�</span>
+                                            <span class="language-text">Deutsch</span>
+                                        </span>
+                                        <span class="language-label" data-lang="en">
+                                            <span class="language-flag">🇺🇸</span>
+                                            <span class="language-text">English</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Hidden inputs for form submission -->
+                        <input type="hidden" id="theme-hidden" name="theme" value="system">
+                        <input type="hidden" id="language-hidden" name="language" value="de">
+                    </div>
+                </form>
+
+                <div class="modal-footer">
+                    <button type="button" id="config-reset" class="btn btn-secondary">Reset to Defaults</button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <a href="https://github.com/Surice/Feierabend-calculator" target="_blank" rel="noopener noreferrer" class="github-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+                <span>All rights reserved © 2025 Feverest</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

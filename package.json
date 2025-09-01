@@ -1,0 +1,31 @@
+{
+  "name": "flexible-time-calculator",
+  "version": "1.0.0",
+  "description": "A modern web application for calculating working hours and flexible time balance",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "serve": "npx http-server -p 8000",
+    "test": "echo \"No tests specified yet\" && exit 0"
+  },
+  "keywords": [
+    "time-calculator",
+    "working-hours",
+    "flexible-time",
+    "gleitzeit",
+    "overtime",
+    "time-tracking"
+  ],
+  "author": "Flexible Time Calculator",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Surice/Feierabend-calculator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Surice/Feierabend-calculator/issues"
+  },
+  "homepage": "https://github.com/Surice/Feierabend-calculator#readme"
+}
