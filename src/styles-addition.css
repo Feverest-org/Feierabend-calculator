@@ -1,0 +1,38 @@
+/* Checkbox styling */
+.checkbox-group {
+    margin: var(--space-4) 0;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--space-2);
+}
+
+.checkbox-input {
+    width: 18px;
+    height: 18px;
+    margin-right: var(--space-2);
+    accent-color: var(--primary-color);
+    cursor: pointer;
+}
+
+.checkbox-label {
+    font-size: var(--font-size-base);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.warning-text {
+    color: var(--warning-color);
+    font-weight: 500;
+}
+
+/* Helper classes */
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}

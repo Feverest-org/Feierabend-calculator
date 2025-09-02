@@ -1,4 +1,137 @@
 /**
+ * Translation Manager
+ * Handles loading and applying translations
+ */
+class TranslationManager {
+    constructor() {
+        this.translations = {};
+        this.currentLanguage = 'en';
+        this.fallbackLanguage = 'en';
+        this.translationsLoaded = false;
+    }
+
+    /**
+     * Load translations from a JSON file
+     */
+    async loadTranslations() {
+        try {
+            // Versuche die Übersetzungen zu laden
+            console.log('Attempting to load translations from translations.json');
+            const response = await fetch('translations.json');
+            
+            if (!response.ok) {
+                throw new Error(`Failed to load translations, status: ${response.status}`);
+            }
+            
+            this.translations = await response.json();
+            console.log('Translations loaded successfully:', Object.keys(this.translations));
+            
+            // Set flag that translations are loaded
+            this.translationsLoaded = true;
+            
+            // Load language from localStorage after translations are loaded
+            this.loadLanguageFromStorage();
+            
+            // Return the loaded translations
+            return this.translations;
+        } catch (error) {
+            console.error('Failed to load translations:', error);
+            
+            // Fallback: Eingebaute Übersetzungen verwenden
+            console.log('Using built-in fallback translations');
+            this.translations = this.getBuiltinTranslations();
+            this.translationsLoaded = true;
+            
+            // Load language from localStorage even with fallback translations
+            this.loadLanguageFromStorage();
+            
+            return this.translations;
+        }
+    }
+    
+    /**
+     * Get built-in fallback translations when JSON loading fails
+     * Dies ist eine Notfalllösung für den Fall, dass die Übersetzungsdatei nicht geladen werden kann
+     */
+    getBuiltinTranslations() {
+        return {
+            "en": {
+                "appTitle": "Feierabend Calculator",
+                "startTime": "Start Time",
+                "endTime": "Estimated End Time",
+                "overtimeBalance": "Current Overtime Balance (hours)",
+                "overtimeHelp": "Enter your current overtime balance in decimal hours (e.g., 2.5 for 2h 30min)",
+                "forceBreak": "Apply break time for today",
+                "breakHint": "For working time under 6h, a break is not required by law",
+                "resultsTitle": "Calculation Results",
+                "workingHours": "Working Hours",
+                "of": "of",
+                "suggestedEndTime": "To reach target, leave at:",
+                "todayBalance": "Today's Balance",
+                "totalOvertime": "Total Overtime",
+                "settings": "Settings",
+                "resetDefaults": "Reset to Defaults",
+                "workingHoursSettings": "Working Hours",
+                "breakDuration": "Break Duration",
+                "appTheme": "Appearance",
+                "language": "Language",
+            }
+        };
+    }
+    
+    /**
+     * Load language setting from localStorage
+     */
+    loadLanguageFromStorage() {
+        try {
+            const savedConfig = localStorage.getItem('flexibleTimeCalculatorConfig');
+            if (savedConfig) {
+                const config = JSON.parse(savedConfig);
+                if (config.language) {
+                    this.setLanguage(config.language);
+                    console.log('Language loaded from storage:', config.language);
+                    return config.language;
+                }
+            }
+            return this.currentLanguage;
+        } catch (error) {
+            console.warn('Failed to load language from storage:', error);
+            return this.currentLanguage;
+        }
+    }
+
+    /**
+     * Set current language
+     */
+    setLanguage(language) {
+        if (this.translations[language]) {
+            this.currentLanguage = language;
+        } else {
+            console.warn(`Language "${language}" not available, using "${this.fallbackLanguage}" as fallback`);
+            this.currentLanguage = this.fallbackLanguage;
+        }
+    }
+
+    /**
+     * Get translation for a key
+     */
+    get(key) {
+        // Try current language first
+        if (this.translations[this.currentLanguage] && this.translations[this.currentLanguage][key]) {
+            return this.translations[this.currentLanguage][key];
+        }
+        
+        // Fall back to default language
+        if (this.translations[this.fallbackLanguage] && this.translations[this.fallbackLanguage][key]) {
+            return this.translations[this.fallbackLanguage][key];
+        }
+        
+        // If all fails, return the key itself
+        return key;
+    }
+}
+
+/**
  * Configuration Manager
  * Handles configuration loading, saving, and validation
  */
@@ -8,10 +141,11 @@ class ConfigManager {
             targetHours: 8,
             breakDuration: 30,
             theme: 'system',
-            language: 'de'
+            language: 'en' // Englisch als Standardsprache
         };
         this.config = { ...this.defaultConfig };
         this.loadConfig();
+        console.log('ConfigManager initialized with language:', this.config.language);
     }
 
     /**
@@ -174,24 +308,17 @@ class FlexibleTimeCalculator {
         // Initialize managers
         this.configManager = new ConfigManager();
         this.themeManager = new ThemeManager();
+        this.translationManager = new TranslationManager();
         
-        // Get DOM elements
+        // Get DOM elements (wichtig für spätere UI-Updates)
         this.initializeElements();
-        
-        // Fill end time with current time
-        this.setCurrentTimeAsEndTime();
         
         // Bind events
         this.bindEvents();
         
-        // Load initial configuration
-        this.loadConfiguration();
-        
-        // Perform initial calculation
-        this.calculateTime();
-        
-        // Set up auto-update for current time in end time field
-        this.setupEndTimeUpdater();
+        // Initialisiere die Anwendung in der richtigen Reihenfolge
+        // Alle weiteren Initialisierungen erfolgen in der initializeApp-Methode
+        this.initializeApp();
     }
 
     /**
@@ -202,6 +329,8 @@ class FlexibleTimeCalculator {
         this.startTimeInput = document.getElementById('start-time');
         this.endTimeInput = document.getElementById('end-time');
         this.overtimeBalanceInput = document.getElementById('overtime-balance');
+        this.forceBreakCheckbox = document.getElementById('force-break');
+        this.breakOptionContainer = document.getElementById('break-option-container');
         
         // Result elements
         this.workingHoursDisplay = document.getElementById('working-hours');
@@ -238,13 +367,25 @@ class FlexibleTimeCalculator {
      */
     bindEvents() {
         // Real-time calculation when inputs change
-        this.startTimeInput.addEventListener('input', () => this.handleInputChange());
+        this.startTimeInput.addEventListener('input', () => {
+            // Prüfe, ob der Arbeitsbeginn nach der aktuellen Zeit liegt
+            // und das Endzeit-Feld nicht manuell editiert wurde
+            if (this.endTimeInput.getAttribute('data-manual-input') !== 'true') {
+                this.setCurrentTimeAsEndTime();
+            }
+            this.handleInputChange();
+        });
         this.endTimeInput.addEventListener('input', () => {
             // Mark end time as manually edited
             this.endTimeInput.setAttribute('data-manual-input', 'true');
             this.handleInputChange();
         });
         this.overtimeBalanceInput.addEventListener('input', () => this.handleInputChange());
+        
+        // Break checkbox handling
+        if (this.forceBreakCheckbox) {
+            this.forceBreakCheckbox.addEventListener('change', () => this.handleInputChange());
+        }
         
         // Configuration modal events
         this.configBtn.addEventListener('click', () => this.openConfigModal());
@@ -496,16 +637,141 @@ class FlexibleTimeCalculator {
     }
     
     /**
+     * Initialize the application in the correct sequence
+     */
+    async initializeApp() {
+        try {
+            console.log('Starting application initialization');
+            
+            // 1. Hole die aktuelle Konfiguration
+            const config = this.configManager.getConfig();
+            console.log('Initial config loaded:', config);
+            
+            // 2. Lade die Übersetzungen
+            await this.translationManager.loadTranslations();
+            
+            // 3. Setze die Sprache explizit (auch wenn sie schon im loadTranslations gesetzt wurde)
+            console.log('Setting language explicitly to:', config.language);
+            this.translationManager.setLanguage(config.language);
+            
+            // 4. Aktualisiere den aktiven Zustand des Sprache-Buttons
+            this.updateActiveLanguageButton(config.language);
+            
+            // 5. Lade den Rest der Konfiguration
+            this.loadConfiguration();
+            
+            // 6. Wende Übersetzungen auf die UI an - NACH dem Laden der Konfiguration
+            console.log('Applying translations with language:', this.translationManager.currentLanguage);
+            this.applyTranslations();
+            
+            // 7. Setze aktuelle Zeit als Endzeit
+            this.setCurrentTimeAsEndTime();
+            
+            // 8. Berechne die Zeit
+            this.calculateTime();
+            
+            // 9. Richte Auto-Update für Endzeit ein
+            this.setupEndTimeUpdater();
+            
+            // 10. Wende die Übersetzungen nochmal an, um sicherzustellen, dass alles übersetzt ist
+            // Manchmal werden DOM-Elemente erst später verfügbar
+            setTimeout(() => {
+                console.log('Applying translations again after delay');
+                this.applyTranslations();
+            }, 100);
+            
+            console.log('Application initialized successfully with language:', config.language);
+        } catch (error) {
+            console.error('Error initializing application:', error);
+        }
+    }
+    
+    /**
      * Update language
      */
     updateLanguage(language) {
-        // Aktualisieren und speichern Sie die Spracheinstellung
+        // Update and save language setting
         const config = this.configManager.getConfig();
         config.language = language;
         this.configManager.updateConfig(config);
         
-        // Hier könnte in Zukunft die Übersetzungslogik implementiert werden
+        // Set language in translation manager and update UI
+        this.translationManager.setLanguage(language);
+        this.applyTranslations();
+        
         console.log(`Language changed to: ${language}`);
+    }
+    
+    /**
+     * Apply translations to all UI elements
+     */
+    applyTranslations() {
+        // Only apply translations if they are loaded
+        if (Object.keys(this.translationManager.translations).length === 0) {
+            console.warn('Cannot apply translations: Translations not loaded yet');
+            return;
+        }
+        
+        try {
+            // Find all elements with data-i18n attribute and translate them
+            const elementsToTranslate = document.querySelectorAll('[data-i18n]');
+            console.log(`Applying translations to ${elementsToTranslate.length} elements, using language: ${this.translationManager.currentLanguage}`);
+            
+            if (elementsToTranslate.length === 0) {
+                console.warn('No elements with data-i18n attribute found!');
+            }
+            
+            // Dump current translations for debugging
+            console.log('Available translations:', this.translationManager.translations);
+            
+            elementsToTranslate.forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (!key) {
+                    console.warn('Element has empty data-i18n attribute:', element);
+                    return;
+                }
+                
+                const translatedText = this.translationManager.get(key);
+                
+                // Ersetze immer den Textinhalt mit der Übersetzung
+                // Das ist wichtig, um sicherzustellen, dass alle Texte in der richtigen Sprache angezeigt werden
+                element.textContent = translatedText;
+                
+                if (key === translatedText) {
+                    // Wenn der Schlüssel zurückgegeben wurde, wurde keine Übersetzung gefunden
+                    console.warn(`No translation found for key "${key}" in language "${this.translationManager.currentLanguage}"`);
+                } else {
+                    console.log(`Translated "${key}" to "${translatedText}"`);
+                }
+            });
+            
+            // Special handling for elements that need more complex updates
+            const suggestionText = document.querySelector('.suggestion-text');
+            if (suggestionText) {
+                const strongElement = suggestionText.querySelector('strong');
+                if (strongElement) {
+                    const timeValue = strongElement.textContent;
+                    // Keep the suggestion-text span but ensure the strong element stays
+                    const spanElement = suggestionText.querySelector('[data-i18n="suggestedEndTime"]');
+                    if (spanElement) {
+                        spanElement.textContent = this.translationManager.get('suggestedEndTime');
+                    }
+                }
+            }
+            
+            // Update title attribute on settings button for accessibility
+            const configBtn = document.querySelector('#config-btn');
+            if (configBtn) {
+                configBtn.setAttribute('title', this.translationManager.get('settings'));
+            }
+            
+            // Erzeuge ein Event, um andere Komponenten zu informieren, dass Übersetzungen angewendet wurden
+            document.dispatchEvent(new CustomEvent('translationsApplied', { 
+                detail: { language: this.translationManager.currentLanguage }
+            }));
+        } catch (error) {
+            console.error('Error applying translations:', error);
+        }
     }
 
     /**
@@ -526,14 +792,42 @@ class FlexibleTimeCalculator {
         if (startTime) {
             const start = this.parseTime(startTime);
             if (start) {
+                const now = new Date();
                 const targetMinutes = config.targetHours * 60;
-                const suggestedEndTime = new Date(start.getTime() + (targetMinutes + config.breakDuration) * 60 * 1000);
+                
+                // Determine if break should be included
+                let breakDuration = 0;
+                
+                // Only include break duration if the target time is actually longer than the break
+                if (config.targetHours * 60 >= config.breakDuration) {
+                    if (config.targetHours >= 6) {
+                        // For target >= 6 hours, include break
+                        breakDuration = config.breakDuration;
+                    } else if (this.forceBreakCheckbox && this.forceBreakCheckbox.checked) {
+                        // For target < 6 hours, include break only if checkbox is checked
+                        breakDuration = config.breakDuration;
+                    }
+                }
+                
+                let suggestedEndTime = new Date(start.getTime() + (targetMinutes + breakDuration) * 60 * 1000);
+                
+                // Entferne die Plausibilitätsprüfung, damit die Endzeit immer korrekt berechnet wird
+                // Wir möchten immer die korrekte voraussichtliche Arbeitszeit anzeigen, auch für zukünftige Starts
+                
                 this.suggestedEndTimeDisplay.textContent = this.formatTime(suggestedEndTime);
+                
+                // Show/hide break option based on target working time
+                if (config.targetHours < 6) {
+                    this.breakOptionContainer.classList.remove('hidden');
+                } else {
+                    this.breakOptionContainer.classList.add('hidden');
+                }
             } else {
                 this.suggestedEndTimeDisplay.textContent = '--:--';
             }
         } else {
             this.suggestedEndTimeDisplay.textContent = '--:--';
+            this.breakOptionContainer.classList.add('hidden');
         }
         
         // If both start and end time are provided, calculate everything
@@ -545,20 +839,77 @@ class FlexibleTimeCalculator {
         // Parse times
         const start = this.parseTime(startTime);
         const end = this.parseTime(endTime);
+        const currentTime = new Date();
         
         if (!start || !end) {
             this.clearPartialResults();
             return;
         }
         
+        // Check if start time is in the future
+        const startIsInFuture = start > currentTime;
+        
+        // Special case: If start and end are exactly the same AND in the future
+        // then we're just estimating the end time, not calculating actual work done
+        if (startIsInFuture && start.getTime() === end.getTime()) {
+            // Calculate suggested end time based on target hours and break
+            const targetMinutes = config.targetHours * 60;
+            let suggestedEndTime = new Date(start.getTime() + (targetMinutes + this.getEffectiveBreakDuration(config)) * 60 * 1000);
+            
+            this.updateResults({
+                workingHours: 0,
+                targetHours: config.targetHours,
+                todayBalance: -config.targetHours,
+                newTotalBalance: currentOvertimeBalance - config.targetHours,
+                suggestedEndTime: suggestedEndTime
+            });
+            return;
+        }
+        
+        // If the user has explicitly set different start and end times,
+        // we calculate the hours as normal, even if they're in the future
+        // This allows planning future work days
+        
         // Handle overnight shifts
         if (end <= start) {
             end.setDate(end.getDate() + 1);
         }
         
-        // Calculate working hours (excluding break)
+        // Calculate total minutes worked
         const totalMinutes = (end - start) / (1000 * 60);
-        const workingMinutes = totalMinutes - config.breakDuration;
+        
+        // Determine if break should be applied
+        const totalHours = totalMinutes / 60;
+        let applyBreak = false;
+        
+        // Show/hide break option based on working time
+        if (totalHours < 6) {
+            // For less than 6 hours, break is optional
+            this.breakOptionContainer.classList.remove('hidden');
+            applyBreak = this.forceBreakCheckbox && this.forceBreakCheckbox.checked;
+        } else {
+            // For 6+ hours, break is mandatory
+            this.breakOptionContainer.classList.add('hidden');
+            applyBreak = true;
+        }
+        
+        // Calculate working hours (excluding break if applicable)
+        let workingMinutes = totalMinutes;
+        let effectiveBreakDuration = 0;
+        
+        if (applyBreak) {
+            // Ensure we never subtract more break time than the total worked time
+            // This prevents negative working hours or unexpected day additions
+            effectiveBreakDuration = Math.min(totalMinutes, config.breakDuration);
+            
+            // Only subtract break if it's actually being applied
+            if (effectiveBreakDuration > 0) {
+                workingMinutes -= effectiveBreakDuration;
+            }
+        }
+        
+        // Ensure working minutes is never negative
+        workingMinutes = Math.max(0, workingMinutes);
         const workingHours = workingMinutes / 60;
         
         // Calculate balance for today
@@ -570,7 +921,12 @@ class FlexibleTimeCalculator {
         
         // Calculate suggested end time to reach target
         const targetMinutes = targetHours * 60;
-        const suggestedEndTime = new Date(start.getTime() + (targetMinutes + config.breakDuration) * 60 * 1000);
+        
+        // Get effective break duration
+        const breakDuration = this.getEffectiveBreakDuration(config);
+        
+        // Calculate suggested end time based on target hours and break
+        let suggestedEndTime = new Date(start.getTime() + (targetMinutes + breakDuration) * 60 * 1000);
         
         // Update display
         this.updateResults({
@@ -582,6 +938,26 @@ class FlexibleTimeCalculator {
         });
     }
 
+    /**
+     * Calculate the effective break duration based on configuration and current form state
+     */
+    getEffectiveBreakDuration(config) {
+        let breakDuration = 0;
+        
+        // Only include break duration if the target time is actually longer than the break
+        if (config.targetHours * 60 >= config.breakDuration) {
+            if (config.targetHours >= 6) {
+                // For target >= 6 hours, include break
+                breakDuration = config.breakDuration;
+            } else if (this.forceBreakCheckbox && this.forceBreakCheckbox.checked) {
+                // For target < 6 hours, include break only if checkbox is checked
+                breakDuration = config.breakDuration;
+            }
+        }
+        
+        return breakDuration;
+    }
+    
     /**
      * Parse time string to Date object
      */
@@ -621,6 +997,34 @@ class FlexibleTimeCalculator {
      */
     setCurrentTimeAsEndTime() {
         const now = new Date();
+        const config = this.configManager.getConfig();
+        
+        // Prüfe, ob Startzeit eingegeben wurde
+        const startTime = this.startTimeInput.value;
+        if (startTime) {
+            const start = this.parseTime(startTime);
+            if (start) {
+                if (start > now) {
+                    // Wenn Startzeit in der Zukunft liegt, setze voraussichtliche Endzeit basierend auf Zielarbeitszeit
+                    const targetMinutes = config.targetHours * 60;
+                    const breakDuration = this.getEffectiveBreakDuration(config);
+                    
+                    // Berechne voraussichtliche Endzeit (Startzeit + Zielarbeitszeit + Pause)
+                    const estimatedEndTime = new Date(start.getTime() + (targetMinutes + breakDuration) * 60 * 1000);
+                    const hours = estimatedEndTime.getHours().toString().padStart(2, '0');
+                    const minutes = estimatedEndTime.getMinutes().toString().padStart(2, '0');
+                    this.endTimeInput.value = `${hours}:${minutes}`;
+                } else {
+                    // Wenn Startzeit in der Vergangenheit liegt, aktuelle Zeit verwenden
+                    const hours = now.getHours().toString().padStart(2, '0');
+                    const minutes = now.getMinutes().toString().padStart(2, '0');
+                    this.endTimeInput.value = `${hours}:${minutes}`;
+                }
+                return;
+            }
+        }
+        
+        // Wenn keine Startzeit oder ungültige Startzeit, aktuelle Zeit verwenden
         const hours = now.getHours().toString().padStart(2, '0');
         const minutes = now.getMinutes().toString().padStart(2, '0');
         this.endTimeInput.value = `${hours}:${minutes}`;
@@ -728,7 +1132,102 @@ class FlexibleTimeCalculator {
     // Methods for updating current balance have been removed as we now use auto-filled end time instead
 }
 
+/**
+ * Helper function to detect if running from file protocol
+ */
+function isRunningFromFileProtocol() {
+    return window.location.protocol === 'file:';
+}
+
+/**
+ * Display a warning message if running from file protocol
+ */
+function showFileProtocolWarning() {
+    if (isRunningFromFileProtocol()) {
+        console.warn(
+            '%cACHTUNG: Diese Anwendung wird über das file:// Protokoll ausgeführt!',
+            'color: #ff9800; font-weight: bold; font-size: 14px;'
+        );
+        console.warn(
+            '%cFür die beste Erfahrung und um CORS-Probleme zu vermeiden, verwende bitte einen lokalen HTTP-Server:',
+            'color: #ff9800;'
+        );
+        console.warn('%c1. Navigiere zum Projektordner in der Befehlszeile', 'color: #4caf50;');
+        console.warn('%c2. Führe aus: python3 -m http.server', 'color: #4caf50;');
+        console.warn('%c3. Öffne http://localhost:8000/src/ im Browser', 'color: #4caf50;');
+    }
+}
+
+/**
+ * Debugging helper to force a specific language
+ * Kann für Tests verwendet werden
+ */
+function forceLanguage(lang) {
+    try {
+        const config = JSON.parse(localStorage.getItem('flexibleTimeCalculatorConfig')) || {};
+        config.language = lang;
+        localStorage.setItem('flexibleTimeCalculatorConfig', JSON.stringify(config));
+        console.log(`Forced language to: ${lang}`);
+        location.reload(); // Reload to apply changes
+    } catch (e) {
+        console.error('Failed to force language:', e);
+    }
+}
+
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new FlexibleTimeCalculator();
+    // Zeige Warnung, wenn die App über file:// ausgeführt wird
+    showFileProtocolWarning();
+    
+    // Lade das Manifest dynamisch, um CORS-Probleme zu vermeiden
+    if (navigator.serviceWorker) {
+        try {
+            // Erstelle ein Link-Element für das Manifest
+            const manifestLink = document.createElement('link');
+            manifestLink.rel = 'manifest';
+            manifestLink.href = 'assets/site.webmanifest';
+            document.head.appendChild(manifestLink);
+        } catch (e) {
+            console.warn('Failed to add manifest dynamically:', e);
+        }
+    }
+    
+    // Starte die Anwendung
+    const app = new FlexibleTimeCalculator();
+    
+    // Countdown-Button Funktionalität hinzufügen
+    const countdownButton = document.getElementById('open-countdown');
+    if (countdownButton) {
+        countdownButton.addEventListener('click', () => {
+            // Hole aktuelle Daten für den Countdown
+            const endTime = document.getElementById('end-time').textContent;
+            const timeBalance = document.getElementById('time-balance').textContent;
+            
+            // Überprüfe ob die Werte gültig sind
+            if (endTime !== '--:--') {
+                let url = 'countdown/countdown.html';
+                
+                // Wenn ein gültiges Ende vorliegt, übergebe es als Parameter
+                if (endTime.match(/^\d{2}:\d{2}$/)) {
+                    url += `?time=${endTime}`;
+                    
+                    // Prüfe, ob negative Zeit (Überstunden) vorliegt
+                    if (timeBalance.startsWith('-')) {
+                        url += '&negative=true';
+                    }
+                }
+                
+                // Öffne die Countdown-Seite
+                window.location.href = url;
+            } else {
+                // Fallback: Öffne ohne Parameter
+                window.location.href = 'countdown/countdown.html';
+            }
+        });
+    }
+    
+    // Debug-Info in der Konsole anzeigen
+    console.log('Debug-Befehle verfügbar:');
+    console.log('- forceLanguage("de") - Erzwingt Deutsch als Sprache');
+    console.log('- forceLanguage("en") - Erzwingt Englisch als Sprache');
 });

@@ -210,19 +210,6 @@ If you encounter any issues or have suggestions for improvements:
 2. Ensure your browser supports modern JavaScript features
 3. Try clearing your browser's local storage if you encounter data issues
 
-## Roadmap 🗺️
-
-Future enhancements could include:
-
-- [ ] Export data to CSV/PDF
-- [ ] Weekly/monthly reports
-- [ ] Multiple target hour profiles
-- [ ] Dark mode toggle
-- [ ] Keyboard shortcuts
-- [ ] Data backup/restore
-- [ ] Integration with calendar apps
-- [ ] Team/company time tracking features
-
 ---
 
 **Built with ❤️ using modern web technologies**

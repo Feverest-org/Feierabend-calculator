@@ -1,0 +1,253 @@
+/**
+ * Styles für die Countdown-Seite
+ */
+
+.countdown-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: calc(100vh - 280px);
+    text-align: center;
+    margin: 0 auto;
+    max-width: 100%;
+}
+
+.countdown-title {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    color: var(--text-color);
+}
+
+.countdown-display {
+    font-size: 8rem;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    margin: 2rem 0;
+    padding: 2rem;
+    border-radius: 15px;
+    min-width: 80%;
+    max-width: 90%;
+    text-align: center;
+    transition: background-color 1s, color 1s;
+    line-height: 1.1;
+}
+
+.countdown-regular {
+    color: var(--primary-color);
+}
+
+.countdown-warning {
+    background-color: rgba(255, 152, 0, 0.2);
+    color: var(--warning-color);
+}
+
+.countdown-danger {
+    background-color: rgba(255, 0, 0, 0.1);
+    color: var(--danger-color);
+}
+
+.countdown-overtime {
+    background-color: rgba(0, 128, 0, 0.1);
+    color: var(--success-color);
+}
+
+.countdown-message {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    height: 1.5em;
+    color: var(--text-color-secondary);
+}
+
+.action-buttons {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* Spezifischer Stil für den Zurück-Button */
+#back-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    min-width: auto;
+    width: auto;
+    max-width: 180px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: none;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+#back-btn:hover {
+    opacity: 1;
+}
+
+/* Einstellungs-Button Stil */
+.config-btn {
+    background: var(--surface-color);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    color: var(--primary-color);
+    overflow: hidden;
+}
+
+.config-btn:hover {
+    transform: rotate(30deg) scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+    color: white;
+}
+
+.settings-icon {
+    width: 22px;
+    height: 22px;
+    transition: all 0.3s ease;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--background-color);
+    border-radius: 15px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    animation: modalIn 0.3s ease;
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text-color);
+}
+
+.close {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-color-secondary);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    line-height: 1;
+}
+
+.close:hover {
+    color: var(--danger-color);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.settings-section {
+    margin-bottom: 1.5rem;
+}
+
+.settings-section h3 {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    color: var(--text-color);
+    border-bottom: 1px solid var(--border-color-light);
+    padding-bottom: 0.5rem;
+}
+
+.notification-details summary {
+    font-size: 0.9rem;
+    color: var(--text-color-secondary);
+    padding: 0.5rem 1rem;
+    border-radius: 15px;
+    cursor: pointer;
+    display: inline-block;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.notification-details summary:hover {
+    color: var(--primary-color);
+    background-color: var(--hover-bg);
+}
+
+.notification-details[open] summary {
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.audio-control {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding: 0.3rem 0;
+    text-align: left;
+}
+
+.audio-control label {
+    margin-left: 0.5rem;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .countdown-display {
+        font-size: 5rem;
+        min-width: 90%;
+        padding: 1.5rem 1rem;
+    }
+    
+    .countdown-title {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .countdown-container {
+        height: calc(100vh - 300px);
+    }
+}
+
+@media (max-width: 480px) {
+    .countdown-display {
+        font-size: 3.5rem;
+        padding: 1rem;
+    }
+}

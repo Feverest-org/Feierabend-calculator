@@ -1,0 +1,6 @@
+/**
+ * This file serves as a placeholder for the notification sound file.
+ * 
+ * In a production environment, replace this with an actual sound file
+ * named notification.mp3 for the countdown end-of-work notification.
+ */
